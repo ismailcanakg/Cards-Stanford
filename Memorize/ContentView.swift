@@ -8,16 +8,85 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    let emojis : [String] = ["👾", "👻", "🎃", "💣", "🪓", "💀", "🧙‍♀️", "👹", "😱", "🧟‍♂️", "☠️", "🍭"]
+    @State var cardCount: Int = 4
+    
     var body: some View {
-        let emojis : [String] = ["👾", "👻", "🎃", "💣", "🪓", "🧲"]
-        HStack {
+        
+        VStack(spacing: 30) {
+            ScrollView {
+                cards
+            }
+            Spacer()
+            cardCountAdjusters
+        }
+        .padding()
+    }
+    
+    // card-CountAdjusters
+    var cardCountAdjusters: some View {
+        HStack(spacing: 100) {
+            cardAdder
+            cardRemoved
+            }
+            .font(.title)
+            .imageScale(.medium)
+
+    }
+    
+    // card-ForEach
+    var cards: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))]) {
             // böyle bir Range yapacaksak bu id: \.selfi koyacaksınız.
-            ForEach(emojis.indices, id: \.self)  { index in
+            ForEach(0..<cardCount, id: \.self)  { index in
                 CardView(content: emojis[index])
+                    .aspectRatio(2/3,contentMode: .fit)
             }
         }
         .foregroundColor(.orange)
-        .padding()
+    }
+    
+    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
+        Button(action: {
+            
+                cardCount += offset
+            
+        }, label: {
+            Image(systemName: symbol)
+                .font(.title)
+        })
+        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
+    }
+    
+    // card-Add
+    var cardAdder: some View {
+        
+        cardCountAdjuster(by: +1, symbol: "rectangle.stack.badge.plus.fill")
+        
+//        Button(action: {
+//            if cardCount < emojis.count {
+//                cardCount += 1
+//            }
+//        }, label: {
+//            Image(systemName: "rectangle.stack.badge.plus.fill")
+//                .font(.title)
+//        })
+    }
+    
+    // card-Remove
+    var cardRemoved: some View {
+        
+        cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus.fill")
+//            .foregroundColor(.red)
+        
+//        Button (action: {
+//            if cardCount > 1 {
+//                cardCount -= 1
+//            }
+//        }, label: {
+//            Image(systemName: "rectangle.stack.badge.minus.fill").foregroundColor(.red)
+//        })
     }
 }
 
@@ -33,13 +102,14 @@ struct CardView: View {
     var body: some View {
         ZStack {
             let base = RoundedRectangle(cornerRadius: 12)
-            if isFaceUp {
+            
+            Group {
                 base.foregroundColor(.white)
                 base.strokeBorder(lineWidth: 3)
                 Text(content).font(.largeTitle)
-            } else {
-                base.fill()
             }
+            .opacity(isFaceUp ? 1 : 0)
+            base.fill().opacity(isFaceUp ? 0 : 1)
         }
         .onTapGesture {
             // toggle bool durumunu true'dan false'a false'dan true'ya değiştiren yapıdır.
